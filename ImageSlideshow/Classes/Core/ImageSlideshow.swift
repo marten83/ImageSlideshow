@@ -36,6 +36,8 @@ open class ImageSlideshow: UIView {
 
     /// Scroll View to wrap the slideshow
     public let scrollView = UIScrollView()
+    
+    let label = UILabel()
 
     /// Page Control shown in the slideshow
     @available(*, deprecated, message: "Use pageIndicator.view instead")
@@ -180,6 +182,7 @@ open class ImageSlideshow: UIView {
 
     fileprivate var slideshowTimer: Timer?
     fileprivate var scrollViewImages = [InputSource]()
+    fileprivate var imageDesc = [String]()
 
     /// Transitioning delegate to manage the transition to full screen controller
     open fileprivate(set) var slideshowTransitioningDelegate: ZoomAnimatedTransitioningDelegate?
@@ -332,9 +335,13 @@ open class ImageSlideshow: UIView {
      Set image inputs into the image slideshow
      - parameter inputs: Array of InputSource instances.
      */
-    open func setImageInputs(_ inputs: [InputSource]) {
+    open func setImageInputs(_ inputs: [InputSource], desc: [String]? = nil) {
         images = inputs
         pageIndicator?.numberOfPages = inputs.count
+        
+        if(desc != nil){
+            imageDesc = desc!
+        }
 
         // in circular mode we add dummy first and last image to enable smooth scrolling
         if circular && images.count > 1 {
@@ -467,7 +474,8 @@ open class ImageSlideshow: UIView {
         fullscreen.pageSelected = {[weak self] (page: Int) in
             self?.setCurrentPage(page, animated: false)
         }
-
+        
+        fullscreen.imageDesc = imageDesc
         fullscreen.initialPage = currentPage
         fullscreen.inputs = images
         slideshowTransitioningDelegate = ZoomAnimatedTransitioningDelegate(slideshowView: self, slideshowController: fullscreen)

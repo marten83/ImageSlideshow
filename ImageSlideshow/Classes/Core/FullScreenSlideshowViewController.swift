@@ -14,7 +14,9 @@ open class FullScreenSlideshowViewController: UIViewController {
         let slideshow = ImageSlideshow()
         slideshow.zoomEnabled = true
         slideshow.contentScaleMode = UIViewContentMode.scaleAspectFit
-        slideshow.pageIndicatorPosition = PageIndicatorPosition(horizontal: .center, vertical: .bottom)
+        //slideshow.pageIndicatorPosition = PageIndicatorPosition(horizontal: .right(padding: 22), vertical: .customTop(padding: 22))
+        slideshow.pageIndicatorPosition = PageIndicatorPosition(horizontal: .right(padding: 22), vertical: .customTop(padding: 22))
+        slideshow.pageIndicator = LabelPageIndicator()
         // turns off the timer
         slideshow.slideshowInterval = 0
         slideshow.autoresizingMask = [UIViewAutoresizing.flexibleWidth, UIViewAutoresizing.flexibleHeight]
@@ -33,6 +35,9 @@ open class FullScreenSlideshowViewController: UIViewController {
 
     /// Index of initial image
     open var initialPage: Int = 0
+    
+    open let label = UITextView()
+    open var imageDesc = [String]()
 
     /// Input sources to 
     open var inputs: [InputSource]?
@@ -58,13 +63,32 @@ open class FullScreenSlideshowViewController: UIViewController {
         if let inputs = inputs {
             slideshow.setImageInputs(inputs)
         }
-
+        
+        label.backgroundColor = UIColor(red:0/255.0, green:0/255.0, blue:0/255.0, alpha:0.6)
+        label.textColor = UIColor.white
+        label.textAlignment = .left;
+        label.font = UIFont(name: "HelveticaNeue", size: 16.0)
+        label.isEditable = false
+        label.isSelectable = false
+        label.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10);
+        label.sizeToFit()
+        label.frame = CGRect(x: 0, y: view.frame.size.height - label.frame.height, width: view.frame.size.width, height: label.frame.height)
+        self.label.text = self.imageDesc[initialPage]
+        
         view.addSubview(slideshow)
+        view.addSubview(label)
+        
 
         // close button configuration
         closeButton.setImage(UIImage(named: "ic_cross_white", in: Bundle(for: type(of: self)), compatibleWith: nil), for: UIControlState())
         closeButton.addTarget(self, action: #selector(FullScreenSlideshowViewController.close), for: UIControlEvents.touchUpInside)
         view.addSubview(closeButton)
+        
+        
+        slideshow.currentPageChanged = { page in
+            self.label.text = self.imageDesc[page]
+            self.label.sizeToFit()
+        }
     }
 
     override open var prefersStatusBarHidden: Bool {
@@ -96,6 +120,11 @@ open class FullScreenSlideshowViewController: UIViewController {
             }
             
             closeButton.frame = closeButtonFrame ?? CGRect(x: max(10, safeAreaInsets.left), y: max(10, safeAreaInsets.top), width: 40, height: 40)
+
+            self.label.sizeToFit()
+            UIView.animate(withDuration: 0.3) {
+                self.label.frame = CGRect(x: 0, y: self.view.frame.size.height - self.label.frame.height, width: self.view.frame.size.width, height: self.label.frame.height)
+            }
         }
 
         slideshow.frame = view.frame

@@ -43,6 +43,7 @@ extension UIPageControl: PageIndicatorView {
 
 /// Page indicator that shows page in numeric style, eg. "5/21"
 public class LabelPageIndicator: UILabel, PageIndicatorView {
+    
     public var view: UIView {
         return self
     }
@@ -52,7 +53,7 @@ public class LabelPageIndicator: UILabel, PageIndicatorView {
             updateLabel()
         }
     }
-
+    
     public var page: Int = 0 {
         didSet {
             updateLabel()
@@ -61,6 +62,7 @@ public class LabelPageIndicator: UILabel, PageIndicatorView {
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
+        
         initialize()
     }
 
@@ -70,6 +72,11 @@ public class LabelPageIndicator: UILabel, PageIndicatorView {
     }
 
     private func initialize() {
+        self.textColor = UIColor.white
+        self.font = UIFont(name: "HelveticaNeue", size: 17.0)
+        self.backgroundColor = UIColor.black
+        let padding = UIEdgeInsets(top: 1, left: 8, bottom: 1, right: 8)
+        self.padding = padding
         self.textAlignment = .center
     }
 
@@ -78,7 +85,57 @@ public class LabelPageIndicator: UILabel, PageIndicatorView {
     }
 
     public override func sizeToFit() {
-        let maximumString = String(repeating: "8", count: numberOfPages) as NSString
-        self.frame.size = maximumString.size(withAttributes: [.font: font])
+        //let maximumString = String(repeating: "8", count: numberOfPages) as NSString
+        let height = self.intrinsicContentSize.height + 2
+        let width = self.intrinsicContentSize.width + 16
+        self.frame.size.width = width
+        self.frame.size.height = height
+    }
+}
+
+extension UILabel {
+    private struct AssociatedKeys {
+        static var padding = UIEdgeInsets()
+    }
+    
+    public var padding: UIEdgeInsets? {
+        get {
+            return objc_getAssociatedObject(self, &AssociatedKeys.padding) as? UIEdgeInsets
+        }
+        set {
+            if let newValue = newValue {
+                objc_setAssociatedObject(self, &AssociatedKeys.padding, newValue as UIEdgeInsets!, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
+        }
+    }
+    
+    override open func draw(_ rect: CGRect) {
+        if let insets = padding {
+            //self.drawText(in: UIEdgeInsetsInsetRect(rect, insets))
+            self.drawText(in: rect.inset(by:insets))
+        } else {
+            self.drawText(in: rect)
+        }
+    }
+    
+    override open var intrinsicContentSize: CGSize {
+        guard let text = self.text else { return super.intrinsicContentSize }
+        
+        var contentSize = super.intrinsicContentSize
+        var textWidth: CGFloat = frame.size.width
+        var insetsHeight: CGFloat = 0.0
+        
+        if let insets = padding {
+            textWidth -= insets.left + insets.right
+            insetsHeight += insets.top + insets.bottom
+        }
+        
+        let newSize = text.boundingRect(with: CGSize(width: textWidth, height: CGFloat.greatestFiniteMagnitude),
+                                        options: NSStringDrawingOptions.usesLineFragmentOrigin,
+                                        attributes: [NSAttributedString.Key.font: self.font], context: nil)
+        
+        contentSize.height = ceil(newSize.size.height) + insetsHeight
+        
+        return contentSize
     }
 }
