@@ -70,6 +70,7 @@ open class FullScreenSlideshowViewController: UIViewController {
         label.font = UIFont(name: "HelveticaNeue", size: 16.0)
         label.isEditable = false
         label.isSelectable = false
+        label.isScrollEnabled = false
         label.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10);
         label.sizeToFit()
         label.frame = CGRect(x: 0, y: view.frame.size.height - label.frame.height, width: view.frame.size.width, height: label.frame.height)
